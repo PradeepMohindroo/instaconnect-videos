@@ -3,20 +3,25 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Shoppable Video App API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: videos
+    description: Video management
+  - name: widgets
+    description: Widget management
+  - name: embed
+    description: Public embed endpoints
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +29,251 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /videos:
+    get:
+      operationId: listVideos
+      tags: [videos]
+      summary: List all videos
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: List of videos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VideoListResponse"
+    post:
+      operationId: createVideo
+      tags: [videos]
+      summary: Create a new video entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVideoBody"
+      responses:
+        "201":
+          description: Created video
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Video"
+
+  /videos/{id}:
+    get:
+      operationId: getVideo
+      tags: [videos]
+      summary: Get a video by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Video
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Video"
+        "404":
+          description: Not found
+    put:
+      operationId: updateVideo
+      tags: [videos]
+      summary: Update a video
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateVideoBody"
+      responses:
+        "200":
+          description: Updated video
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Video"
+    delete:
+      operationId: deleteVideo
+      tags: [videos]
+      summary: Delete a video
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /widgets:
+    get:
+      operationId: listWidgets
+      tags: [widgets]
+      summary: List all widgets
+      responses:
+        "200":
+          description: List of widgets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WidgetListResponse"
+    post:
+      operationId: createWidget
+      tags: [widgets]
+      summary: Create a new widget
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWidgetBody"
+      responses:
+        "201":
+          description: Created widget
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Widget"
+
+  /widgets/{id}:
+    get:
+      operationId: getWidget
+      tags: [widgets]
+      summary: Get a widget by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Widget with videos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WidgetWithVideos"
+        "404":
+          description: Not found
+    put:
+      operationId: updateWidget
+      tags: [widgets]
+      summary: Update a widget
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateWidgetBody"
+      responses:
+        "200":
+          description: Updated widget
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Widget"
+    delete:
+      operationId: deleteWidget
+      tags: [widgets]
+      summary: Delete a widget
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /widgets/{id}/videos:
+    put:
+      operationId: setWidgetVideos
+      tags: [widgets]
+      summary: Set the videos for a widget (replaces existing)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetWidgetVideosBody"
+      responses:
+        "200":
+          description: Updated widget with videos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WidgetWithVideos"
+
+  /stats:
+    get:
+      operationId: getStats
+      tags: [videos]
+      summary: Get dashboard summary stats
+      responses:
+        "200":
+          description: Stats summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stats"
+
+  /embed/{widgetId}:
+    get:
+      operationId: getEmbedWidget
+      tags: [embed]
+      summary: Get public embed data for a widget (used by Shopify themes)
+      parameters:
+        - name: widgetId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Embed widget data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmbedData"
+        "404":
+          description: Not found
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +284,282 @@ components:
       required:
         - status
 
+    Video:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        instagramUrl:
+          type: string
+          description: URL of the Instagram post (for embedding)
+        videoUrl:
+          type: string
+          nullable: true
+          description: Direct video file URL (if uploaded)
+        thumbnailUrl:
+          type: string
+          nullable: true
+        instagramPageUrl:
+          type: string
+          nullable: true
+          description: Instagram profile/page URL that clicking the video should link to
+        description:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - instagramUrl
+        - videoUrl
+        - thumbnailUrl
+        - instagramPageUrl
+        - description
+        - tags
+        - createdAt
+        - updatedAt
+
+    CreateVideoBody:
+      type: object
+      properties:
+        title:
+          type: string
+        instagramUrl:
+          type: string
+        videoUrl:
+          type: string
+          nullable: true
+        thumbnailUrl:
+          type: string
+          nullable: true
+        instagramPageUrl:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+      required:
+        - title
+        - instagramUrl
+
+    UpdateVideoBody:
+      type: object
+      properties:
+        title:
+          type: string
+        instagramUrl:
+          type: string
+        videoUrl:
+          type: string
+          nullable: true
+        thumbnailUrl:
+          type: string
+          nullable: true
+        instagramPageUrl:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+
+    VideoListResponse:
+      type: object
+      properties:
+        videos:
+          type: array
+          items:
+            $ref: "#/components/schemas/Video"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      required:
+        - videos
+        - total
+        - page
+        - limit
+
+    Widget:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+          enum: [product_page, homepage]
+          description: "product_page shows 3-4 videos; homepage shows 6-7 videos"
+        shopifyContext:
+          type: string
+          nullable: true
+          description: Shopify product ID or page handle where this widget appears
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - type
+        - shopifyContext
+        - isActive
+        - createdAt
+        - updatedAt
+
+    WidgetWithVideos:
+      allOf:
+        - $ref: "#/components/schemas/Widget"
+        - type: object
+          properties:
+            videos:
+              type: array
+              items:
+                $ref: "#/components/schemas/Video"
+          required:
+            - videos
+
+    CreateWidgetBody:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [product_page, homepage]
+        shopifyContext:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+      required:
+        - name
+        - type
+
+    UpdateWidgetBody:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [product_page, homepage]
+        shopifyContext:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+
+    SetWidgetVideosBody:
+      type: object
+      properties:
+        videoIds:
+          type: array
+          items:
+            type: integer
+          description: Ordered list of video IDs to assign to this widget
+      required:
+        - videoIds
+
+    WidgetListResponse:
+      type: object
+      properties:
+        widgets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Widget"
+        total:
+          type: integer
+      required:
+        - widgets
+        - total
+
+    Stats:
+      type: object
+      properties:
+        totalVideos:
+          type: integer
+        totalWidgets:
+          type: integer
+        productPageWidgets:
+          type: integer
+        homepageWidgets:
+          type: integer
+        activeWidgets:
+          type: integer
+        recentVideos:
+          type: array
+          items:
+            $ref: "#/components/schemas/Video"
+      required:
+        - totalVideos
+        - totalWidgets
+        - productPageWidgets
+        - homepageWidgets
+        - activeWidgets
+        - recentVideos
+
+    EmbedData:
+      type: object
+      properties:
+        widgetId:
+          type: integer
+        widgetType:
+          type: string
+          enum: [product_page, homepage]
+        videos:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              title:
+                type: string
+              videoUrl:
+                type: string
+                nullable: true
+              thumbnailUrl:
+                type: string
+                nullable: true
+              instagramUrl:
+                type: string
+              instagramPageUrl:
+                type: string
+                nullable: true
+            required:
+              - id
+              - title
+              - videoUrl
+              - thumbnailUrl
+              - instagramUrl
+              - instagramPageUrl
+      required:
+        - widgetId
+        - widgetType
+        - videos
