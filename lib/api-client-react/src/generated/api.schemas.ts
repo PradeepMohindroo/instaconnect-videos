@@ -127,6 +127,33 @@ export interface Stats {
   recentVideos: Video[];
 }
 
+export interface ShopifyConnection {
+  connected: boolean;
+  shop: string | null;
+  installedAt: string | null;
+}
+
+export interface ShopifyTheme {
+  id: number;
+  name: string;
+  role: string;
+  previewable: boolean;
+}
+
+export interface ShopifyThemeList {
+  themes: ShopifyTheme[];
+}
+
+export interface InstallShopifyThemeResult {
+  success: boolean;
+  message: string;
+  snippetKey: string | null;
+}
+
+export interface DisconnectShopifyResult {
+  success: boolean;
+}
+
 export type EmbedDataWidgetType =
   (typeof EmbedDataWidgetType)[keyof typeof EmbedDataWidgetType];
 

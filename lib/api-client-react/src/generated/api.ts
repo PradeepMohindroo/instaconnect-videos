@@ -19,10 +19,14 @@ import type {
 import type {
   CreateVideoBody,
   CreateWidgetBody,
+  DisconnectShopifyResult,
   EmbedData,
   HealthStatus,
+  InstallShopifyThemeResult,
   ListVideosParams,
   SetWidgetVideosBody,
+  ShopifyConnection,
+  ShopifyThemeList,
   Stats,
   UpdateVideoBody,
   UpdateWidgetBody,
@@ -1121,6 +1125,324 @@ export function useGetStats<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Get current Shopify connection status
+ */
+export const getGetShopifyConnectionUrl = () => {
+  return `/api/shopify/connection`;
+};
+
+export const getShopifyConnection = async (
+  options?: RequestInit,
+): Promise<ShopifyConnection> => {
+  return customFetch<ShopifyConnection>(getGetShopifyConnectionUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetShopifyConnectionQueryKey = () => {
+  return [`/api/shopify/connection`] as const;
+};
+
+export const getGetShopifyConnectionQueryOptions = <
+  TData = Awaited<ReturnType<typeof getShopifyConnection>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getShopifyConnection>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetShopifyConnectionQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getShopifyConnection>>
+  > = ({ signal }) => getShopifyConnection({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getShopifyConnection>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetShopifyConnectionQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getShopifyConnection>>
+>;
+export type GetShopifyConnectionQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get current Shopify connection status
+ */
+
+export function useGetShopifyConnection<
+  TData = Awaited<ReturnType<typeof getShopifyConnection>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getShopifyConnection>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetShopifyConnectionQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary List all themes for the connected Shopify store
+ */
+export const getListShopifyThemesUrl = () => {
+  return `/api/shopify/themes`;
+};
+
+export const listShopifyThemes = async (
+  options?: RequestInit,
+): Promise<ShopifyThemeList> => {
+  return customFetch<ShopifyThemeList>(getListShopifyThemesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListShopifyThemesQueryKey = () => {
+  return [`/api/shopify/themes`] as const;
+};
+
+export const getListShopifyThemesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listShopifyThemes>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listShopifyThemes>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListShopifyThemesQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listShopifyThemes>>
+  > = ({ signal }) => listShopifyThemes({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listShopifyThemes>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListShopifyThemesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listShopifyThemes>>
+>;
+export type ListShopifyThemesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all themes for the connected Shopify store
+ */
+
+export function useListShopifyThemes<
+  TData = Awaited<ReturnType<typeof listShopifyThemes>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listShopifyThemes>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListShopifyThemesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Install the shoppable video snippet into a theme
+ */
+export const getInstallShopifyThemeUrl = (themeId: number) => {
+  return `/api/shopify/themes/${themeId}/install`;
+};
+
+export const installShopifyTheme = async (
+  themeId: number,
+  options?: RequestInit,
+): Promise<InstallShopifyThemeResult> => {
+  return customFetch<InstallShopifyThemeResult>(
+    getInstallShopifyThemeUrl(themeId),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+export const getInstallShopifyThemeMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof installShopifyTheme>>,
+    TError,
+    { themeId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof installShopifyTheme>>,
+  TError,
+  { themeId: number },
+  TContext
+> => {
+  const mutationKey = ["installShopifyTheme"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof installShopifyTheme>>,
+    { themeId: number }
+  > = (props) => {
+    const { themeId } = props ?? {};
+
+    return installShopifyTheme(themeId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type InstallShopifyThemeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof installShopifyTheme>>
+>;
+
+export type InstallShopifyThemeMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Install the shoppable video snippet into a theme
+ */
+export const useInstallShopifyTheme = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof installShopifyTheme>>,
+    TError,
+    { themeId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof installShopifyTheme>>,
+  TError,
+  { themeId: number },
+  TContext
+> => {
+  return useMutation(getInstallShopifyThemeMutationOptions(options));
+};
+
+/**
+ * @summary Disconnect the linked Shopify store
+ */
+export const getDisconnectShopifyUrl = () => {
+  return `/api/shopify/disconnect`;
+};
+
+export const disconnectShopify = async (
+  options?: RequestInit,
+): Promise<DisconnectShopifyResult> => {
+  return customFetch<DisconnectShopifyResult>(getDisconnectShopifyUrl(), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDisconnectShopifyMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof disconnectShopify>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof disconnectShopify>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["disconnectShopify"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof disconnectShopify>>,
+    void
+  > = () => {
+    return disconnectShopify(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DisconnectShopifyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof disconnectShopify>>
+>;
+
+export type DisconnectShopifyMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Disconnect the linked Shopify store
+ */
+export const useDisconnectShopify = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof disconnectShopify>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof disconnectShopify>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getDisconnectShopifyMutationOptions(options));
+};
 
 /**
  * @summary Get public embed data for a widget (used by Shopify themes)

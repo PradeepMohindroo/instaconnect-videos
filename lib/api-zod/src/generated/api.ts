@@ -360,6 +360,49 @@ export const GetStatsResponse = zod.object({
 });
 
 /**
+ * @summary Get current Shopify connection status
+ */
+export const GetShopifyConnectionResponse = zod.object({
+  connected: zod.boolean(),
+  shop: zod.string().nullable(),
+  installedAt: zod.string().nullable(),
+});
+
+/**
+ * @summary List all themes for the connected Shopify store
+ */
+export const ListShopifyThemesResponse = zod.object({
+  themes: zod.array(
+    zod.object({
+      id: zod.number(),
+      name: zod.string(),
+      role: zod.string(),
+      previewable: zod.boolean(),
+    }),
+  ),
+});
+
+/**
+ * @summary Install the shoppable video snippet into a theme
+ */
+export const InstallShopifyThemeParams = zod.object({
+  themeId: zod.coerce.number(),
+});
+
+export const InstallShopifyThemeResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
+  snippetKey: zod.string().nullable(),
+});
+
+/**
+ * @summary Disconnect the linked Shopify store
+ */
+export const DisconnectShopifyResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
  * @summary Get public embed data for a widget (used by Shopify themes)
  */
 export const GetEmbedWidgetParams = zod.object({

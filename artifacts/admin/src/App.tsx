@@ -11,6 +11,7 @@ import WidgetsList from "@/pages/widgets/index";
 import WidgetNew from "@/pages/widgets/new";
 import WidgetEdit from "@/pages/widgets/edit";
 import EmbedGuide from "@/pages/embed-guide";
+import ShopifySettings from "@/pages/shopify-settings";
 
 import NotFound from "@/pages/not-found";
 
@@ -27,6 +28,7 @@ function Router() {
         <Route path="/widgets/new" component={WidgetNew} />
         <Route path="/widgets/:id" component={WidgetEdit} />
         <Route path="/embed-guide" component={EmbedGuide} />
+        <Route path="/shopify" component={ShopifySettings} />
         <Route component={NotFound} />
       </Switch>
     </AppShell>

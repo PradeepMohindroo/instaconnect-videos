@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Video, LayoutTemplate, Code2, Menu } from "lucide-react";
+import { LayoutDashboard, Video, LayoutTemplate, Code2, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -22,6 +22,10 @@ const navItems = [
   { title: "Embed Guide", url: "/embed-guide", icon: Code2 },
 ];
 
+const settingsItems = [
+  { title: "Shopify", url: "/shopify", icon: Store },
+];
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
 
@@ -40,6 +44,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   {navItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild isActive={location === item.url || (item.url !== "/" && location.startsWith(item.url))}>
+                        <Link href={item.url} className="flex items-center gap-3">
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+            <SidebarGroup>
+              <SidebarGroupLabel>Settings</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {settingsItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild isActive={location.startsWith(item.url)}>
                         <Link href={item.url} className="flex items-center gap-3">
                           <item.icon className="h-4 w-4" />
                           <span>{item.title}</span>

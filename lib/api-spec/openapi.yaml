@@ -16,6 +16,8 @@ tags:
     description: Widget management
   - name: embed
     description: Public embed endpoints
+  - name: shopify
+    description: Shopify OAuth and theme installation
 paths:
   /healthz:
     get:
@@ -252,6 +254,64 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Stats"
+
+  /shopify/connection:
+    get:
+      operationId: getShopifyConnection
+      tags: [shopify]
+      summary: Get current Shopify connection status
+      responses:
+        "200":
+          description: Connection status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopifyConnection"
+
+  /shopify/themes:
+    get:
+      operationId: listShopifyThemes
+      tags: [shopify]
+      summary: List all themes for the connected Shopify store
+      responses:
+        "200":
+          description: List of themes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopifyThemeList"
+
+  /shopify/themes/{themeId}/install:
+    post:
+      operationId: installShopifyTheme
+      tags: [shopify]
+      summary: Install the shoppable video snippet into a theme
+      parameters:
+        - name: themeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Installation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstallShopifyThemeResult"
+
+  /shopify/disconnect:
+    delete:
+      operationId: disconnectShopify
+      tags: [shopify]
+      summary: Disconnect the linked Shopify store
+      responses:
+        "200":
+          description: Result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DisconnectShopifyResult"
 
   /embed/{widgetId}:
     get:
@@ -523,6 +583,72 @@ components:
         - homepageWidgets
         - activeWidgets
         - recentVideos
+
+    ShopifyConnection:
+      type: object
+      properties:
+        connected:
+          type: boolean
+        shop:
+          type: string
+          nullable: true
+        installedAt:
+          type: string
+          nullable: true
+      required:
+        - connected
+        - shop
+        - installedAt
+
+    ShopifyTheme:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        role:
+          type: string
+        previewable:
+          type: boolean
+      required:
+        - id
+        - name
+        - role
+        - previewable
+
+    ShopifyThemeList:
+      type: object
+      properties:
+        themes:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShopifyTheme"
+      required:
+        - themes
+
+    InstallShopifyThemeResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        snippetKey:
+          type: string
+          nullable: true
+      required:
+        - success
+        - message
+        - snippetKey
+
+    DisconnectShopifyResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
 
     EmbedData:
       type: object

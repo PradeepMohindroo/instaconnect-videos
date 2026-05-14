@@ -41,12 +41,19 @@ A Shopify-embeddable shoppable video app. Merchants upload Instagram videos thro
 - `GET/PUT/DELETE /api/widgets/:id`
 - `PUT /api/widgets/:id/videos` — Assign videos to widget
 - `GET /api/embed/:widgetId` — **Public endpoint for Shopify embeds** (CORS open)
+- `GET /api/shopify/auth?shop=` — Start Shopify OAuth (redirect)
+- `GET /api/shopify/callback` — OAuth callback, stores access token
+- `GET /api/shopify/connection` — Connection status
+- `GET /api/shopify/themes` — List store themes
+- `POST /api/shopify/themes/:themeId/install` — Install Liquid snippet in theme
+- `DELETE /api/shopify/disconnect` — Remove stored token
 
 ## Database Schema
 
 - `videos` — title, instagram_url, video_url, thumbnail_url, instagram_page_url, description, tags[]
 - `widgets` — name, type (product_page|homepage), shopify_context, is_active
 - `widget_videos` — join table (widget_id, video_id, position)
+- `shopify_stores` — shop, access_token, scope, installed_at, updated_at
 
 ## Key Commands
 
