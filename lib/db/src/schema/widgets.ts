@@ -4,6 +4,7 @@ import { z } from "zod/v4";
 
 export const widgetsTable = pgTable("widgets", {
   id: serial("id").primaryKey(),
+  shop: text("shop").notNull().default(""),
   name: text("name").notNull(),
   type: text("type").notNull(), // 'product_page' | 'homepage'
   shopifyContext: text("shopify_context"),

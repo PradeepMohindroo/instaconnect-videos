@@ -4,6 +4,7 @@ import { z } from "zod/v4";
 
 export const videosTable = pgTable("videos", {
   id: serial("id").primaryKey(),
+  shop: text("shop").notNull().default(""),
   title: text("title").notNull(),
   instagramUrl: text("instagram_url").notNull(),
   videoUrl: text("video_url"),
