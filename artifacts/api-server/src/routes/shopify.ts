@@ -1,5 +1,6 @@
-import { Router, type IRouter } from "express";
+import express, { Router, type IRouter } from "express";
 import { createHmac, randomBytes, timingSafeEqual } from "crypto";
+import { eq } from "drizzle-orm";
 import { db, shopifyStoresTable } from "@workspace/db";
 import {
   GetShopifyConnectionResponse,
@@ -135,8 +136,32 @@ router.get("/shopify/callback", async (req, res): Promise<void> => {
       },
     });
 
+  // Register app/uninstalled webhook so we can clean up when the merchant removes the app
+  const appUrl = getAppUrl();
+  const webhookRes = await fetch(`https://${shop}/admin/api/2024-01/webhooks.json`, {
+    method: "POST",
+    headers: {
+      "X-Shopify-Access-Token": tokenData.access_token,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      webhook: {
+        topic: "app/uninstalled",
+        address: `${appUrl}/api/shopify/webhooks/uninstalled`,
+        format: "json",
+      },
+    }),
+  });
+
+  if (!webhookRes.ok) {
+    // Non-fatal — log but don't block the OAuth completion
+    req.log.warn({ status: webhookRes.status, shop }, "Failed to register app/uninstalled webhook");
+  } else {
+    req.log.info({ shop }, "Registered app/uninstalled webhook");
+  }
+
   req.log.info({ shop }, "Shopify store connected successfully");
-  res.redirect(`${getAppUrl()}/shopify?connected=true`);
+  res.redirect(`${appUrl}/shopify?connected=true`);
 });
 
 // GET /shopify/connection
@@ -230,6 +255,62 @@ router.post("/shopify/themes/:themeId/install", async (req, res): Promise<void> 
     }),
   );
 });
+
+// POST /shopify/webhooks/uninstalled — called by Shopify when merchant removes the app
+// Uses express.raw() at route level so we can validate the HMAC over the raw body bytes
+router.post(
+  "/shopify/webhooks/uninstalled",
+  express.raw({ type: "application/json" }),
+  async (req, res): Promise<void> => {
+    const rawBody: Buffer = req.body as Buffer;
+    const hmacHeader = req.headers["x-shopify-hmac-sha256"];
+
+    if (!hmacHeader || typeof hmacHeader !== "string") {
+      req.log.warn("Webhook received without HMAC header");
+      res.status(401).send("Missing HMAC");
+      return;
+    }
+
+    let secret: string;
+    try {
+      secret = getApiSecret();
+    } catch {
+      req.log.error("SHOPIFY_API_SECRET not configured — cannot validate webhook");
+      res.status(500).send("Server misconfigured");
+      return;
+    }
+
+    // Shopify signs the raw body with HMAC-SHA256 and base64-encodes the result
+    const expectedHmac = createHmac("sha256", secret).update(rawBody).digest("base64");
+    const valid = (() => {
+      try {
+        return timingSafeEqual(Buffer.from(expectedHmac), Buffer.from(hmacHeader));
+      } catch {
+        return false;
+      }
+    })();
+
+    if (!valid) {
+      req.log.warn("Webhook HMAC validation failed — ignoring");
+      res.status(401).send("HMAC mismatch");
+      return;
+    }
+
+    const payload = JSON.parse(rawBody.toString("utf8")) as { domain?: string };
+    const shop = payload.domain;
+
+    if (!shop) {
+      req.log.warn("app/uninstalled webhook missing domain field");
+      res.status(400).send("Missing domain");
+      return;
+    }
+
+    await db.delete(shopifyStoresTable).where(eq(shopifyStoresTable.shop, shop));
+    req.log.info({ shop }, "app/uninstalled webhook received — store removed");
+
+    res.sendStatus(200);
+  },
+);
 
 // DELETE /shopify/disconnect
 router.delete("/shopify/disconnect", async (req, res): Promise<void> => {
