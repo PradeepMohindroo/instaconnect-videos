@@ -1,4 +1,4 @@
-import express, { Router, type IRouter } from "express";
+import { Router, type IRouter } from "express";
 import { createHmac, randomBytes, timingSafeEqual } from "crypto";
 import { eq } from "drizzle-orm";
 import { db, shopifyStoresTable } from "@workspace/db";
@@ -255,62 +255,6 @@ router.post("/shopify/themes/:themeId/install", async (req, res): Promise<void> 
     }),
   );
 });
-
-// POST /shopify/webhooks/uninstalled — called by Shopify when merchant removes the app
-// Uses express.raw() at route level so we can validate the HMAC over the raw body bytes
-router.post(
-  "/shopify/webhooks/uninstalled",
-  express.raw({ type: "application/json" }),
-  async (req, res): Promise<void> => {
-    const rawBody: Buffer = req.body as Buffer;
-    const hmacHeader = req.headers["x-shopify-hmac-sha256"];
-
-    if (!hmacHeader || typeof hmacHeader !== "string") {
-      req.log.warn("Webhook received without HMAC header");
-      res.status(401).send("Missing HMAC");
-      return;
-    }
-
-    let secret: string;
-    try {
-      secret = getApiSecret();
-    } catch {
-      req.log.error("SHOPIFY_API_SECRET not configured — cannot validate webhook");
-      res.status(500).send("Server misconfigured");
-      return;
-    }
-
-    // Shopify signs the raw body with HMAC-SHA256 and base64-encodes the result
-    const expectedHmac = createHmac("sha256", secret).update(rawBody).digest("base64");
-    const valid = (() => {
-      try {
-        return timingSafeEqual(Buffer.from(expectedHmac), Buffer.from(hmacHeader));
-      } catch {
-        return false;
-      }
-    })();
-
-    if (!valid) {
-      req.log.warn("Webhook HMAC validation failed — ignoring");
-      res.status(401).send("HMAC mismatch");
-      return;
-    }
-
-    const payload = JSON.parse(rawBody.toString("utf8")) as { domain?: string };
-    const shop = payload.domain;
-
-    if (!shop) {
-      req.log.warn("app/uninstalled webhook missing domain field");
-      res.status(400).send("Missing domain");
-      return;
-    }
-
-    await db.delete(shopifyStoresTable).where(eq(shopifyStoresTable.shop, shop));
-    req.log.info({ shop }, "app/uninstalled webhook received — store removed");
-
-    res.sendStatus(200);
-  },
-);
 
 // DELETE /shopify/disconnect
 router.delete("/shopify/disconnect", async (req, res): Promise<void> => {

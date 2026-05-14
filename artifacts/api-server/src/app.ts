@@ -2,6 +2,7 @@ import express, { type Express } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
+import shopifyWebhookRouter from "./routes/shopify-webhook";
 import { logger } from "./lib/logger";
 
 const app: Express = express();
@@ -26,6 +27,14 @@ app.use(
   }),
 );
 app.use(cors());
+
+// Mount webhook routes BEFORE express.json() so express.raw() can intercept
+// the raw body stream before it is consumed. Shopify sends webhooks as
+// application/json and signs the raw bytes — if express.json() runs first it
+// sets req._body = true and express.raw() skips, making HMAC validation
+// impossible.
+app.use("/api", shopifyWebhookRouter);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
