@@ -27,6 +27,7 @@ function getApiSecret(): string {
 }
 
 function getAppUrl(): string {
+  if (process.env["APP_URL"]) return process.env["APP_URL"];
   const domains = process.env["REPLIT_DOMAINS"];
   if (domains) return `https://${domains.split(",")[0]}`;
   return `http://localhost:${process.env["PORT"] ?? "8080"}`;
