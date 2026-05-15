@@ -20,15 +20,42 @@ import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
 
+const TOKEN_TIMEOUT_MS = 3000;
+
 // Registers shopify.idToken() as the bearer token getter so every customFetch
 // call to the backend API includes a valid Shopify session token.
 // Must be rendered inside the React tree so useAppBridge can access window.shopify.
 function AppBridgeSetup() {
   const shopify = useAppBridge();
+
   useEffect(() => {
-    setAuthTokenGetter(() => shopify.idToken());
+    console.log("[AppBridge] shopify global on mount:", shopify);
+
+    setAuthTokenGetter(async () => {
+      console.log("[AppBridge] token getter called");
+      try {
+        const token = await Promise.race([
+          shopify.idToken(),
+          new Promise<null>((resolve) =>
+            setTimeout(() => {
+              console.warn(
+                `[AppBridge] idToken() did not resolve within ${TOKEN_TIMEOUT_MS}ms — proceeding without Authorization header`,
+              );
+              resolve(null);
+            }, TOKEN_TIMEOUT_MS),
+          ),
+        ]);
+        console.log("[AppBridge] token result:", token ? `${token.slice(0, 20)}…` : token);
+        return token;
+      } catch (err) {
+        console.error("[AppBridge] idToken() threw:", err);
+        return null;
+      }
+    });
+
     return () => setAuthTokenGetter(null);
   }, [shopify]);
+
   return null;
 }
 
