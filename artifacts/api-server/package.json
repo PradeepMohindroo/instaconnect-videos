@@ -13,6 +13,7 @@
     "@workspace/api-zod": "workspace:*",
     "@workspace/db": "workspace:*",
     "cookie-parser": "^1.4.7",
+    "jose": "^5.10.0",
     "cors": "^2",
     "drizzle-orm": "catalog:",
     "express": "^5",

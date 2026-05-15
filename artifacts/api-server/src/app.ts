@@ -3,6 +3,7 @@ import cors from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import shopifyWebhookRouter from "./routes/shopify-webhook";
+import { verifyShopifySessionToken } from "./middlewares/shopify-session-token";
 import { logger } from "./lib/logger";
 
 const app: Express = express();
@@ -37,6 +38,11 @@ app.use("/api", shopifyWebhookRouter);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Validate Shopify session tokens on all /api routes.
+// /api/shopify/webhooks/uninstalled is already handled above (before this middleware).
+// /api/embed/:widgetId is exempted inside the middleware itself (public storefront endpoint).
+app.use("/api", verifyShopifySessionToken);
 
 app.use("/api", router);
 

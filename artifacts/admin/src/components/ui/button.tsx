@@ -42,8 +42,10 @@ const buttonVariants = cva(
   }
 )
 
+// Omit 'variant' from ButtonHTMLAttributes to avoid a conflict with the
+// App Bridge JSX augmentation, which adds its own incompatible variant type.
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "variant">,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
 }
