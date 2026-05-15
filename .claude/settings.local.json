@@ -3,7 +3,8 @@
     "allow": [
       "Bash(pnpm install *)",
       "Bash(pnpm typecheck *)",
-      "Bash(git *)"
+      "Bash(git *)",
+      "Bash(pnpm build *)"
     ]
   }
 }
