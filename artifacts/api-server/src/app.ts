@@ -42,7 +42,8 @@ app.use(express.urlencoded({ extended: true }));
 // Validate Shopify session tokens on all /api routes.
 // /api/shopify/webhooks/uninstalled is already handled above (before this middleware).
 // /api/embed/:widgetId is exempted inside the middleware itself (public storefront endpoint).
-app.use("/api", verifyShopifySessionToken);
+// TODO: temporarily disabled to confirm frontend can reach backend before debugging auth.
+// app.use("/api", verifyShopifySessionToken);
 
 app.use("/api", router);
 

@@ -20,7 +20,8 @@ import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
 
-const TOKEN_TIMEOUT_MS = 3000;
+const TOKEN_POLL_INTERVAL_MS = 500;
+const TOKEN_MAX_WAIT_MS = 10_000;
 
 // Registers shopify.idToken() as the bearer token getter so every customFetch
 // call to the backend API includes a valid Shopify session token.
@@ -33,24 +34,31 @@ function AppBridgeSetup() {
 
     setAuthTokenGetter(async () => {
       console.log("[AppBridge] token getter called");
-      try {
-        const token = await Promise.race([
-          shopify.idToken(),
-          new Promise<null>((resolve) =>
-            setTimeout(() => {
-              console.warn(
-                `[AppBridge] idToken() did not resolve within ${TOKEN_TIMEOUT_MS}ms — proceeding without Authorization header`,
-              );
-              resolve(null);
-            }, TOKEN_TIMEOUT_MS),
-          ),
-        ]);
-        console.log("[AppBridge] token result:", token ? `${token.slice(0, 20)}…` : token);
-        return token;
-      } catch (err) {
-        console.error("[AppBridge] idToken() threw:", err);
-        return null;
+      const deadline = Date.now() + TOKEN_MAX_WAIT_MS;
+
+      while (Date.now() < deadline) {
+        try {
+          const remaining = deadline - Date.now();
+          const token = await Promise.race([
+            shopify.idToken(),
+            new Promise<null>((resolve) =>
+              setTimeout(() => resolve(null), Math.min(TOKEN_POLL_INTERVAL_MS, remaining)),
+            ),
+          ]);
+          if (token) {
+            console.log("[AppBridge] token result:", `${token.slice(0, 20)}…`);
+            return token;
+          }
+        } catch (err) {
+          console.warn("[AppBridge] idToken() threw:", err);
+        }
+        if (Date.now() < deadline) {
+          await new Promise((resolve) => setTimeout(resolve, TOKEN_POLL_INTERVAL_MS));
+        }
       }
+
+      console.warn("[AppBridge] idToken() did not return a token within 10s — proceeding without Authorization header");
+      return null;
     });
 
     return () => setAuthTokenGetter(null);
