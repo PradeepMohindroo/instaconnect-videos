@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useGetStats } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -6,6 +7,13 @@ import { Video, LayoutTemplate, Activity, ShoppingBag, Home } from "lucide-react
 import { format } from "date-fns";
 
 export default function Dashboard() {
+  useEffect(() => {
+    fetch('https://shop-video-link.replit.app/api/stats')
+      .then(r => { console.log('[TEST] status:', r.status); return r.json(); })
+      .then(d => console.log('[TEST] data:', d))
+      .catch(e => console.error('[TEST] error:', e));
+  }, []);
+
   const { data: stats, isLoading, isError } = useGetStats();
 
   if (isError) {
