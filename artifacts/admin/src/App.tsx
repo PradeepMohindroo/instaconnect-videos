@@ -1,11 +1,8 @@
-import { useEffect } from "react";
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppShell } from "@/components/layout/Shell";
-import { useAppBridge } from "@shopify/app-bridge-react";
-import { setAuthTokenGetter } from "@workspace/api-client-react";
 
 import Dashboard from "@/pages/dashboard";
 import VideosList from "@/pages/videos/index";
@@ -19,53 +16,6 @@ import ShopifySettings from "@/pages/shopify-settings";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
-
-const TOKEN_POLL_INTERVAL_MS = 500;
-const TOKEN_MAX_WAIT_MS = 10_000;
-
-// Registers shopify.idToken() as the bearer token getter so every customFetch
-// call to the backend API includes a valid Shopify session token.
-// Must be rendered inside the React tree so useAppBridge can access window.shopify.
-function AppBridgeSetup() {
-  const shopify = useAppBridge();
-
-  useEffect(() => {
-    console.log("[AppBridge] shopify global on mount:", shopify);
-
-    setAuthTokenGetter(async () => {
-      console.log("[AppBridge] token getter called");
-      const deadline = Date.now() + TOKEN_MAX_WAIT_MS;
-
-      while (Date.now() < deadline) {
-        try {
-          const remaining = deadline - Date.now();
-          const token = await Promise.race([
-            shopify.idToken(),
-            new Promise<null>((resolve) =>
-              setTimeout(() => resolve(null), Math.min(TOKEN_POLL_INTERVAL_MS, remaining)),
-            ),
-          ]);
-          if (token) {
-            console.log("[AppBridge] token result:", `${token.slice(0, 20)}…`);
-            return token;
-          }
-        } catch (err) {
-          console.warn("[AppBridge] idToken() threw:", err);
-        }
-        if (Date.now() < deadline) {
-          await new Promise((resolve) => setTimeout(resolve, TOKEN_POLL_INTERVAL_MS));
-        }
-      }
-
-      console.warn("[AppBridge] idToken() did not return a token within 10s — proceeding without Authorization header");
-      return null;
-    });
-
-    return () => setAuthTokenGetter(null);
-  }, [shopify]);
-
-  return null;
-}
 
 function Router() {
   return (
@@ -88,7 +38,6 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppBridgeSetup />
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <Router />
